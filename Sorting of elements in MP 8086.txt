@@ -1,0 +1,326 @@
+.model small
+.stack
+.data 
+
+    men0 db 10, 13, 'MENU: Please select the appropriate option $'
+    men1 db 10, 13, '1. To enter the array $'
+    men2 db 10, 13, '2. To display *Assending Order of entered array* $'
+    men3 db 10, 13, '3. To display *Dessending Order of entered array* $'
+    men4 db 10, 13, '4. To exit from the program. $'                            
+    men5 db 10, 13, 'Invalid choice $'                                                          
+                                                          
+    m0 db 10, 13, ' WE WELCOME YOU TO OUR$'
+    m1 db 10, 13, 'Mini - Proj for sorting the array elements.$' 
+    m2 db 10, 13, '-----------------------------------------------------------$'
+    m3 db 10, 13, 'Enter the size of the list $' 
+    m4 db 10, 13, 'Enter the elements of the list $' 
+    m5 db 10, 13, '$' 
+    m6 db 10, 13, 'The unsorted list is: $'
+    m7 db 10, 13, 'The Sorted list is: $' 
+    m8 db 10, 13, 'THANKYOU: $'
+    
+    list_size_value db ?
+    top dw ?   
+    
+    ass_sort_list db list_size_value dup(0)
+    dess_sort_list db list_size_value dup(0)
+    
+    
+.code
+    ;define the macros to take element:
+    disp MACRO xx
+        mov ah, 09
+        lea dx, xx
+        int 21h
+    endm   
+    
+       
+    
+
+.startup     
+  
+  disp m0  
+    disp m1
+    
+menu:   
+    disp men0
+    disp men1
+    disp men2
+    disp men3
+    disp men4
+    mov ah, 01
+    int 21h
+    
+    cmp al, 31h
+    je entry 
+    
+    cmp al, 32h
+    je disp_ass
+    
+    cmp al, 33h
+    je disp_dess
+    
+    cmp al, 34h 
+    je finalexit
+    
+    
+    
+    disp m5
+    disp men5
+    jmp menu
+    
+    
+    
+entry:    
+    disp m2
+    disp m3
+        call take_element
+        
+        mov list_size_value, bh
+
+    
+    
+    
+    disp m2
+    disp m2 
+    
+    mov ch, list_size_value
+    
+    lea di, ass_sort_list
+    lea si, dess_sort_list
+    
+    
+L0:   disp m4        
+        disp m5
+        call take_element
+        
+        mov [di], bh 
+        mov [si], bh
+        inc di      
+        inc si
+        dec ch
+        jnz L0 
+        
+    mov ch, list_size_value
+    
+    lea di, ass_sort_list 
+    
+    
+  
+    disp m5
+    disp m6 
+        
+L1:     disp m5  
+        
+        ;mov bh, [di]
+        call display
+        
+        
+        inc di
+        dec ch
+        jnz L1
+        
+    disp m5
+    jmp menu    
+     
+disp_ass:
+    disp m5    
+    call assi_order   
+    disp m5
+    jmp menu
+
+disp_dess: 
+    disp m5   
+    call dess_order    
+    disp m5
+    jmp menu
+
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;ALL PROC DEFINED:
+
+take_element PROC
+        
+        mov ah, 01
+        int 21h
+        
+        sub al, 30h
+        mov cl, 4
+        shl al, cl             
+        mov bh, al
+        
+        mov ah, 01
+        int 21h
+        
+        sub al, 30h
+        add bh, al
+        
+        ;mov temp, bh
+        ret     
+        
+    take_element endP 
+    
+    display PROC
+        
+        
+        mov bh, [di]
+        and bh, 0f0h
+        mov cl, 4
+        shr bh, cl
+        add bh, 30h
+        mov dl, bh
+       
+        mov ah, 02
+        int 21h
+        
+        mov bh, [di]
+        and bh, 0fh
+        add bh, 30h
+        mov dl, bh
+        mov ah, 02
+        int 21h 
+        
+        ret     
+        
+    display endP 
+    
+    
+    assi_order PROC
+        
+    ; assending order:
+    mov ch, list_size_value
+    dec ch 
+bigloop:lea si, ass_sort_list
+        mov bl, list_size_value
+        mov bh, 00
+        mov top, bx
+        dec top
+        add si, top
+        mov cl, bl
+        dec cl
+        mov dl, [si] 
+        dec si
+    loop1:  cmp dl, [si]
+            jge dlgreater
+            mov al, [si]
+            mov [si], dl
+            inc si
+            mov [si], al
+            dec si
+            
+            
+    dlgreater: mov dl, [si]
+            
+            dec si
+            dec cl
+            jz exitt
+            jmp loop1
+    
+    exitt:  dec ch
+            jnz bigloop 
+
+  
+    mov ch, list_size_value
+    
+    lea di, ass_sort_list 
+    
+    
+    
+    disp m5
+    disp m7 
+        
+L2:     disp m5  
+        
+        ;mov bh, [di]
+        call display
+        
+        
+        inc di
+        dec ch
+        jnz L2
+     
+    ret
+    
+    assi_order endP
+ 
+    dess_order PROC
+        
+    ; dessending order:
+    mov ch, list_size_value
+    dec ch 
+bigloop2:lea si, dess_sort_list
+        mov bl, list_size_value
+        mov bh, 00
+        mov top, bx
+        dec top
+        add si, top
+        mov cl, bl
+        dec cl
+        mov dl, [si] 
+        dec si
+    loop1b:  cmp [si], dl
+            jge sigreater
+            mov al, [si]
+            mov [si], dl
+            inc si
+            mov [si], al
+            dec si
+            
+            
+    sigreater: mov dl, [si]
+            
+            dec si
+            dec cl
+            jz exittb
+            jmp loop1b
+    
+    exittb:  dec ch
+            jnz bigloop2 
+
+
+  
+    mov ch, list_size_value
+    
+    lea di, dess_sort_list 
+    
+    
+    
+    disp m5
+    disp m7 
+        
+Ld:     disp m5  
+        
+        ;mov bh, [di]
+        call display
+        
+        
+        inc di
+        dec ch
+        jnz Ld
+     
+    ret
+    
+    dess_order endP    
+    
+finalexit: 
+    disp m5
+    disp m8   
+             
+.exit
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
